@@ -192,7 +192,7 @@ This project uses the [nvidia/HelpSteer2](https://huggingface.co/datasets/nvidia
 
 ## Troubleshooting
 
-### Missing \	raining_data.json\
+### Missing \	training_data.json\
 Ensure \data/training_data.json\ exists before running the pipeline. Regenerate from the original HelpSteer2 dataset if needed.
 
 ### Azure OpenAI Connection Issues
