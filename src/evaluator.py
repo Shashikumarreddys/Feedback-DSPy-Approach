@@ -16,7 +16,6 @@ class HelpSteer2Evaluator(dspy.Module):
     """
     Evaluates responses on 5 dimensions:
     helpfulness, correctness, coherence, complexity, verbosity.
-    All evaluations start at baseline 3 and adjust based on specific criteria.
     """
 
     ATTRIBUTES = {
@@ -42,29 +41,41 @@ class HelpSteer2Evaluator(dspy.Module):
         ),
 
         'complexity': (
-            'Complexity: Evaluate the language difficulty level for a general audience.\n'
-            '4 = Too complex: Dense academic language, unexplained jargon, '
-            'assumes expert knowledge, very long sentences (25+ words).\n'
-            '3 = Appropriately balanced: Uses everyday language, explains technical '
-            'terms inline, 15-20 word sentences, accessible to non-experts.\n'
-            '2 = Ideal middle ground: Simple but not childish, concrete examples, '
-            'brief explanations of any technical terms.\n'
-            '1 = Too simple: Oversimplified, lacks necessary detail, talks down to reader.\n'
-            '0 = Extremely inappropriate: Either incomprehensibly complex or insultingly basic.\n'
-            'Start at 3, then adjust based on sentence length, jargon use, and explanation quality.'
+            'Complexity: How much domain expertise is required to write this response?\n'
+            'Score each level as follows:\n'
+            '2 = IDEAL (score: 1.0): Requires moderate knowledge, written accessibly. '
+            'Technical terms explained immediately in plain language. '
+            'A thoughtful non-expert follows with ease.\n'
+            '1 = ACCEPTABLE (score: 0.7): Slightly simple — mostly general knowledge. '
+            'Lacks some depth but still informative and useful. Not oversimplified.\n'
+            '3 = SUBOPTIMAL (score: 0.3): Requires solid domain knowledge. '
+            'Some jargon used without full explanation. Motivated reader can still follow.\n'
+            '4 = POOR (score: 0.0): Requires deep expert knowledge. Dense academic language, '
+            'unexplained technical terms, assumes PhD-level background.\n'
+            '0 = POOR (score: 0.0): Incomprehensible OR insultingly basic — useless either way.\n'
+            'Start at 2. Adjust UP if unexplained jargon or expert assumptions are found. '
+            'Adjust DOWN only if response is trivially shallow but still useful.'
         ),
 
         'verbosity': (
             'Verbosity: Evaluate the amount of detail and length relative to the question.\n'
-            '4 = Too verbose: Exceeds 350 words for simple questions, repetitive, '
-            'includes unnecessary background, rambling.\n'
-            '3 = Slightly detailed: 250-350 words, includes some extra context, '
-            'could be tighter but still reasonable.\n'
-            '2 = Ideal conciseness: 150-250 words for explanations, 20-40 words '
-            'for simple questions, complete but focused.\n'
-            '1 = Too brief: One-liner for complex questions, missing important points, incomplete.\n'
-            '0 = Extremely inappropriate: Either a novel-length essay or useless one-word answer.\n'
-            'Start at 3, then count words and check if length matches question complexity.'
+            'Score each level as follows:\n'
+            '2 = IDEAL (score: 1.0): Length perfectly matches what the question needs.\n'
+            '  - Simple questions (greetings, yes/no, quick facts): 20-40 words.\n'
+            '  - Explanation questions (what is X, how does Y work): 80-180 words.\n'
+            '  - Complex multi-part questions: 180-250 words.\n'
+            '  Complete, focused, zero filler or padding.\n'
+            '1 = ACCEPTABLE (score: 0.3): Slightly too brief — misses some detail '
+            'but the core answer is present. User gets the gist but may need to ask more.\n'
+            '3 = ACCEPTABLE (score: 0.3): Slightly too long — 250-350 words. '
+            'Includes some extra context that could be trimmed but is not harmful.\n'
+            '4 = POOR (score: 0.0): Exceeds 350 words. Repetitive, rambling, '
+            'padded with unnecessary background or tangential information.\n'
+            '0 = POOR (score: 0.0): Completely off — either a single useless word '
+            'or a novel-length essay that ignores the question entirely.\n'
+            'Start at 2. Estimate length relative to question type. '
+            'Adjust UP if response is padded or exceeds word targets above. '
+            'Adjust DOWN only if response is clearly incomplete.'
         ),
     }
 
@@ -101,5 +112,5 @@ class HelpSteer2Evaluator(dspy.Module):
         match = re.search(r'\b([0-4])(?:\.\d*)?\b', text)
         if match:
             return int(match.group(1))
-        logger.warning(f"Could not parse score from: '{text}', defaulting to 3")
-        return 3
+        logger.warning(f"Could not parse score from: '{text}', defaulting to 2")
+        return 2  

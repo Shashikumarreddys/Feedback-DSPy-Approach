@@ -38,7 +38,7 @@ def configure_dspy_with_azure():
         api_version=api_version,
         model_type='chat',
         temperature=0.7,
-        max_tokens=800,
+        max_tokens=2000,
     )
 
     dspy.settings.configure(lm=lm)
